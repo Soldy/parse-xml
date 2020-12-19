@@ -4,6 +4,7 @@ A fast, safe, compliant XML parser for Node.js and browsers.
 
 [![npm version](https://badge.fury.io/js/%40rgrove%2Fparse-xml.svg)](https://badge.fury.io/js/%40rgrove%2Fparse-xml)
 [![Build Status](https://travis-ci.org/rgrove/parse-xml.svg?branch=master)](https://travis-ci.org/rgrove/parse-xml)
+[![Bundle size](https://badgen.net/bundlephobia/minzip/@rgrove/parse-xml)](https://bundlephobia.com/result?p=@rgrove/parse-xml)
 
 ## Contents
 
@@ -30,12 +31,19 @@ A fast, safe, compliant XML parser for Node.js and browsers.
 npm install @rgrove/parse-xml
 ```
 
+Or, if you like living dangerously, you can load [the minified UMD bundle][umd]
+in a browser via [Unpkg][] and use the `parseXml` global.
+
+[umd]:https://unpkg.com/@rgrove/parse-xml/dist/umd/parse-xml.min.js
+[Unpkg]:https://unpkg.com/
+
 ## Features
 
 -   Returns an [object tree](#basic-usage) representing an XML document.
 
--   Works great in browsers. Around 6KB minified and gzipped (depending on how
-    you package it).
+-   Works great in Node.js 8+ and in modern browsers. Also works in older
+    browsers if you provide polyfills for `Object.assign()`, `Object.freeze()`,
+    and `String.fromCodePoint()`.
 
 -   Provides [helpful, detailed error messages](#friendly-errors) with context
     when a document is not well-formed.
@@ -45,7 +53,8 @@ npm install @rgrove/parse-xml
 
 -   Passes all relevant tests in the [XML Conformance Test Suite](https://www.w3.org/XML/Test/).
 
--   It's [fast](#benchmark).
+-   It's [fast](#benchmark), [tiny](https://bundlephobia.com/result?p=@rgrove/parse-xml),
+    and has no dependencies.
 
 ## Not Features
 
@@ -391,41 +400,66 @@ Also, it was fun.
 
 ## Benchmark
 
-Here's how parse-xml stacks up against two comparable libraries,
-[libxmljs](https://github.com/libxmljs/libxmljs) (which is based on the native
-libxml library) and [xmldoc](https://github.com/nfarina/xmldoc) (which is based
-on [sax-js](https://github.com/isaacs/sax-js)).
+Here's how parse-xml stacks up against two comparable libraries, [libxmljs2]
+(which is based on the native libxml library) and [xmldoc] (which is based on
+[sax-js]).
+
+[libxmljs2]:https://github.com/marudor/libxmljs2
+[sax-js]:https://github.com/isaacs/sax-js
+[xmldoc]:https://github.com/nfarina/xmldoc
 
 ```
-Node.js v8.4.0 / Darwin x64
+Node.js v12.16.3 / Darwin x64
 Intel(R) Core(TM) i7-6920HQ CPU @ 2.90GHz
 
-                      Small document (291 bytes)
-          29,400 op/s » libxmljs (native)
-          54,203 op/s » parse-xml
-          32,359 op/s » xmldoc (sax-js)
+Running "Small document (291 bytes)" suite...
 
-                      Medium document (72081 bytes)
-             673 op/s » libxmljs (native)
-             389 op/s » parse-xml
-             234 op/s » xmldoc (sax-js)
+  @rgrove/parse-xml 2.0.4:
+    74 904 ops/s, ±0.59%   | fastest
 
-                      Large document (1162464 bytes)
-              61 op/s » libxmljs (native)
-              26 op/s » parse-xml
-              20 op/s » xmldoc (sax-js)
+  libxmljs2 0.25.3 (native):
+    29 890 ops/s, ±4.15%   | 60.1% slower
 
+  xmldoc 1.1.2 (sax-js):
+    26 659 ops/s, ±0.67%   | slowest, 64.41% slower
 
-  Suites:  3
-  Benches: 9
-  Elapsed: 16,417.15 ms
+Finished 3 cases!
+  Fastest: @rgrove/parse-xml 2.0.4
+  Slowest: xmldoc 1.1.2 (sax-js)
+
+Running "Medium document (72081 bytes)" suite...
+
+  @rgrove/parse-xml 2.0.4:
+    455 ops/s, ±0.41%   | 53.76% slower
+
+  libxmljs2 0.25.3 (native):
+    984 ops/s, ±6.42%   | fastest
+
+  xmldoc 1.1.2 (sax-js):
+    184 ops/s, ±0.75%   | slowest, 81.3% slower
+
+Finished 3 cases!
+  Fastest: libxmljs2 0.25.3 (native)
+  Slowest: xmldoc 1.1.2 (sax-js)
+
+Running "Large document (1162464 bytes)" suite...
+
+  @rgrove/parse-xml 2.0.4:
+    36 ops/s, ±1.68%   | 41.94% slower
+
+  libxmljs2 0.25.3 (native):
+    62 ops/s, ±13.04%   | fastest
+
+  xmldoc 1.1.2 (sax-js):
+    15 ops/s, ±0.67%   | slowest, 75.81% slower
+
+Finished 3 cases!
+  Fastest: libxmljs2 0.25.3 (native)
+  Slowest: xmldoc 1.1.2 (sax-js)
 ```
 
-To run this benchmark yourself, clone this repo and run:
-
-```
-npm i && npm run benchmark
-```
+See the [parse-xml-benchmark](https://github.com/rgrove/parse-xml-benchmark)
+repo for instructions on running this benchmark yourself.
 
 ## License
 

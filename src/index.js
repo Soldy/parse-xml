@@ -30,7 +30,7 @@ module.exports = function parseXml(xml, options = emptyObject) {
     xml = xml.slice(1);
   }
 
-  xml = xml.replace(/\r\n/g, '\n'); // Normalize CRLF to LF.
+  xml = xml.replace(/\r\n?/g, '\n'); // Normalize CRLF and CR to LF.
 
   let doc = {
     type: NODE_TYPE_DOCUMENT,
@@ -45,7 +45,6 @@ module.exports = function parseXml(xml, options = emptyObject) {
     parent: doc,
     pos: 0,
     prevPos: 0,
-    slice: null,
     xml
   };
 
@@ -57,7 +56,7 @@ module.exports = function parseXml(xml, options = emptyObject) {
     error(state, 'Root element is missing or invalid');
   }
 
-  while (consumeMisc(state)) {}
+  while (consumeMisc(state)) {} // eslint-disable-line no-empty
 
   if (!isEof(state)) {
     error(state, `Extra content at the end of the document`);
@@ -247,10 +246,10 @@ function consumeProlog(state) {
 
   scan(state, Syntax.Anchored.XMLDecl);
 
-  while (consumeMisc(state)) {}
+  while (consumeMisc(state)) {}  // eslint-disable-line no-empty
 
   if (consumeDoctypeDecl(state)) {
-    while (consumeMisc(state)) {}
+    while (consumeMisc(state)) {}  // eslint-disable-line no-empty
   }
 
   return state.pos > pos;
@@ -329,16 +328,15 @@ function isEof(state) {
 }
 
 function nodeToJson() {
-  let json = Object.assign(Object.create(null), this);
+  let json = Object.assign(Object.create(null), this); // eslint-disable-line no-invalid-this
   delete json.parent;
   return json;
 }
 
 function normalizeAttrValue(state, value) {
   return value
-    .replace(Syntax.Global.Reference, state.replaceReference)
-    .replace(Syntax.Global.S, ' ')
-    .trim();
+    .replace(/[\x20\t\r\n]/g, ' ')
+    .replace(Syntax.Global.Reference, state.replaceReference);
 }
 
 function parseAttrs(state, attrs) {
@@ -379,7 +377,11 @@ function parseAttrs(state, attrs) {
 }
 
 function replaceReference(ref) {
-  let state = this;
+  let state = this; // eslint-disable-line no-invalid-this
+
+  if (ref[ref.length - 1] !== ';') {
+    error(state, `Invalid reference: \`${ref}\``);
+  }
 
   if (ref[1] === '#') {
     // This is a character entity.
@@ -430,18 +432,13 @@ function replaceReference(ref) {
 }
 
 function scan(state, regex) {
-  let { pos, slice, xml } = state;
+  let { pos, xml } = state;
 
-  if (slice === null) {
-    if (pos > 0) {
-      slice = xml.slice(pos);
-      state.slice = slice;
-    } else {
-      slice = xml;
-    }
-  }
+  let xmlToScan = pos > 0
+    ? xml.slice(pos)
+    : xml;
 
-  let matches = slice.match(regex);
+  let matches = xmlToScan.match(regex);
 
   if (matches === null) {
     return emptyArray;
@@ -449,7 +446,6 @@ function scan(state, regex) {
 
   state.prevPos = state.pos;
   state.pos += matches[0].length;
-  state.slice = null;
 
   return matches;
 }
